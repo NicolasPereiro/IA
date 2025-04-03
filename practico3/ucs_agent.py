@@ -24,26 +24,31 @@ class UCSAgent(SearchAgent):
         visited.add(position)
         queue.push(position, 0, None)  # Initial cost is 0, and no previous node
         while not queue.is_empty():
-            current_position = queue.pop()[0]
+            current_node = queue.pop()
+            current_position = current_node[0]
             print("Current position: ", current_position)
+            possible_actions = map.get(current_position, [])
+            visited.add(current_position)
             if current_position == self.end_state:
-                print("Goal reached: ", current_position)
-                return self.actionsReconstruction(previous, current_position)
-            possible_actions = map[current_position]
-            print("Possible actions: ", possible_actions)
+                self.action_list = self.actionsReconstruction(previous, current_position)
+                print(self.action_list)
+                break
             for action in possible_actions:
-                print("Action: ", action)
-                if map[current_position][action] not in visited:
-                    print("Adding to queue: ", map[current_position][action])
-                    visited.add(map[current_position][action])
-                    queue.push(action, 1, current_position)  # Assuming uniform cost of 1 for each action
-                    previous[map[current_position][action]] = current_position
+                next_position = possible_actions[action]
+                if map.get(next_position) is None:
+                    cost = 9223372036854775807 # Infinite cost if the next position is not in the map
+                else:
+                    cost = current_node[1] + 1
+                if next_position not in visited:
+                    queue.push(next_position, cost, current_position)
+                    previous[next_position] = (current_position, action)
+            
                     
     def actionsReconstruction(self, previous, current_position):
         actions = []
-        while current_position != self.initial_state:
-            actions.append(previous[current_position])
-            current_position = previous[current_position]
+        while current_position in previous:
+            current_position, action = previous[current_position]
+            actions.append(action)
         actions.reverse()
         return actions
             
